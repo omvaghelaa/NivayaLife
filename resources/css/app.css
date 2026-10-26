@@ -1,0 +1,219 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+[x-cloak] {
+    display: none !important;
+}
+
+/* The page surface: cream with a whisper of mint falling from the top-right
+   and the faintest gold rising from the bottom-left — depth without ever
+   competing with the cards sitting on it. Dark mode swaps to the neutral
+   charcoal with a soft brand-green aurora instead. */
+.nivayalife-surface {
+    background-color: #FBF6EA;
+    background-image:
+        radial-gradient(60rem 40rem at 110% -10%, rgba(220, 239, 227, 0.6), transparent 60%),
+        radial-gradient(50rem 35rem at -10% 110%, rgba(201, 148, 26, 0.07), transparent 55%);
+}
+.dark .nivayalife-surface {
+    background-color: #12161B;
+    background-image:
+        radial-gradient(60rem 40rem at 110% -10%, rgba(20, 80, 63, 0.28), transparent 60%),
+        radial-gradient(50rem 35rem at -10% 110%, rgba(201, 148, 26, 0.05), transparent 55%);
+}
+
+/* Brand-tinted text selection — small, but it makes the whole site feel
+   deliberately put together rather than browser-default. */
+::selection {
+    background-color: rgba(201, 148, 26, 0.28);
+    color: #14503F;
+}
+.dark ::selection {
+    background-color: rgba(201, 148, 26, 0.4);
+    color: #ffffff;
+}
+
+/* Dark-mode legibility safety net.
+ *
+ * The brand text colours are tuned for cream: on the dark surface, muted
+ * (#5A6960) lands at 3.1:1 and ink (#1F2A24) at 1.2:1 — both well under
+ * WCAG AA's 4.5:1, which is why body copy was hard to read at night. These
+ * lift them to 7.4:1 and 15.5:1.
+ *
+ * :where() keeps the selector at zero specificity, so any element that
+ * already carries an explicit dark:text-* utility keeps its own colour and
+ * this only fills the gaps.
+ */
+.dark :where(.text-nivayalife-muted) { color: #9BA8A2; }
+.dark :where(.text-nivayalife-ink) { color: #E9EEEB; }
+.dark :where(.text-nivayalife-green) { color: #5FBFA3; }
+.dark :where(.text-nivayalife-ink\/70) { color: rgba(233, 238, 235, 0.72); }
+.dark :where(.text-nivayalife-ink\/60) { color: rgba(233, 238, 235, 0.62); }
+.dark :where(.text-nivayalife-ink\/50) { color: rgba(233, 238, 235, 0.52); }
+.dark :where(.text-nivayalife-ink\/80) { color: rgba(233, 238, 235, 0.82); }
+/* Hairline borders and dividers disappear against the dark surface. */
+.dark :where(.border-gray-100, .border-gray-200) { border-color: rgba(255, 255, 255, 0.10); }
+.dark :where(.divide-gray-100) > :not([hidden]) ~ :not([hidden]) { border-color: rgba(255, 255, 255, 0.10); }
+
+/* Scroll-reveal: elements wait just below their resting place until they
+   scroll into view (see resources/js/scroll-reveal.js). Staggering is done
+   with an inline transition-delay on the element itself. */
+[data-reveal] {
+    opacity: 0;
+    transform: translateY(22px);
+    transition:
+        opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: opacity, transform;
+}
+[data-reveal].is-revealed {
+    opacity: 1;
+    transform: none;
+}
+
+/* Marks the nav link for whichever landing-page section is currently in
+   view (see initNavHighlight in resources/js/scroll-reveal.js). */
+.nivayalife-nav-active {
+    color: #14503F;
+    font-weight: 600;
+}
+
+/* Gold as a structural accent, not just a highlight colour.
+   A hairline that fades in from nothing at both ends — used to separate
+   major sections without the hard line of a border. */
+.nivayalife-rule-gold {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(201, 148, 26, 0.55), transparent);
+}
+
+/* Gold gradient text for the one phrase per page that should carry weight. */
+.nivayalife-text-gold {
+    background: linear-gradient(100deg, #C9941A 0%, #E1C37E 45%, #C9941A 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+/* A card whose gold edge only appears on hover — restrained until touched. */
+.nivayalife-gold-edge {
+    position: relative;
+}
+.nivayalife-gold-edge::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(140deg, rgba(201, 148, 26, 0.7), transparent 45%, rgba(201, 148, 26, 0.35));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+.nivayalife-gold-edge:hover::before {
+    opacity: 1;
+}
+
+/* ---------------------------------------------------------------
+   Landing-page motion. Everything below is used only on the marketing
+   page, where a little movement earns attention; the app itself stays
+   still so it never competes with someone's actual health data.
+   --------------------------------------------------------------- */
+
+/* Hero ornaments drifting, at different speeds so they never look paired. */
+@keyframes nivayalife-float {
+    0%, 100% { transform: translate3d(0, 0, 0); }
+    50% { transform: translate3d(0, -18px, 0); }
+}
+.nivayalife-float { animation: nivayalife-float 7s ease-in-out infinite; }
+.nivayalife-float-slow { animation: nivayalife-float 11s ease-in-out infinite; }
+
+/* The scan line that sweeps a report while the AI "reads" it. */
+@keyframes nivayalife-scan {
+    0% { top: 0; opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { top: 100%; opacity: 0; }
+}
+.nivayalife-scanline {
+    animation: nivayalife-scan 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* Caret for the summary that types itself out. */
+@keyframes nivayalife-caret {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+.nivayalife-caret::after {
+    content: '';
+    display: inline-block;
+    width: 2px;
+    height: 1em;
+    margin-left: 2px;
+    vertical-align: text-bottom;
+    background: currentColor;
+    animation: nivayalife-caret 1s step-end infinite;
+}
+
+/* Emergency card flip. */
+.nivayalife-flip { perspective: 1200px; }
+.nivayalife-flip-inner {
+    position: relative;
+    transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-style: preserve-3d;
+}
+.nivayalife-flip.is-flipped .nivayalife-flip-inner { transform: rotateY(180deg); }
+.nivayalife-flip-face {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+.nivayalife-flip-back {
+    position: absolute;
+    inset: 0;
+    transform: rotateY(180deg);
+}
+
+/* A slow gold sheen that travels across the final call to action. */
+@keyframes nivayalife-sheen {
+    0% { transform: translateX(-120%) skewX(-18deg); }
+    55%, 100% { transform: translateX(320%) skewX(-18deg); }
+}
+.nivayalife-sheen::after {
+    content: '';
+    position: absolute;
+    inset-block: 0;
+    width: 45%;
+    background: linear-gradient(90deg, transparent, rgba(225, 195, 126, 0.16), transparent);
+    animation: nivayalife-sheen 6.5s ease-in-out infinite;
+    pointer-events: none;
+}
+
+/* Respect users who ask the OS for less motion: the fade/slide entrance
+   animations and shake become instant instead of animated. */
+@media (prefers-reduced-motion: reduce) {
+    .animate-nivayalife-fade-up,
+    .animate-nivayalife-shake,
+    .animate-bounce,
+    .animate-ping,
+    .nivayalife-sheen::after,
+    .nivayalife-float,
+    .nivayalife-float-slow,
+    .nivayalife-scanline,
+    .nivayalife-caret::after {
+        animation: none !important;
+    }
+    .nivayalife-flip-inner {
+        transition: none !important;
+    }
+    [data-reveal] {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+    }
+    html {
+        scroll-behavior: auto !important;
+    }
+}

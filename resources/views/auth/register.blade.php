@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Create your account — Nivaya Life</title>
+
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800&display=swap" rel="stylesheet">
+
+    @include('partials.pwa-meta')
+
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+</head>
+<body class="nivayalife-surface min-h-screen bg-nivayalife-cream font-sans text-nivayalife-ink antialiased dark:bg-nivayalife-night dark:text-nivayalife-cream">
+
+<x-confetti />
+
+<div class="mx-auto max-w-lg px-4 py-8 sm:py-12">
+    <div class="mb-6 flex items-center justify-between">
+        <a href="{{ url('/') }}"><x-nivayalife-logo /></a>
+        <div class="flex items-center gap-3">
+            <span class="hidden text-sm text-nivayalife-muted sm:inline">Already have an account?</span>
+            <a href="{{ route('login') }}" class="rounded-lg border border-nivayalife-green/20 bg-white px-4 py-2 text-sm font-semibold text-nivayalife-green shadow-nivayalife-sm hover:bg-nivayalife-mint/40">Log in</a>
+            <x-dark-mode-toggle />
+        </div>
+    </div>
+
+    <div
+        x-data="registerForm({
+            csrfToken: @js(csrf_token()),
+            checkEmailUrl: @js(route('register.check-email')),
+            registerUrl: @js(route('register.store')),
+        })"
+        class="rounded-nivayalife bg-white p-5 shadow-nivayalife sm:p-8 dark:bg-white/5"
+    >
+        <h2 class="text-xl font-bold text-nivayalife-ink dark:text-white">Create your account</h2>
+        <p class="mt-1 text-sm text-nivayalife-muted">Just the basics for now — you can add your photo, address, and more from your profile anytime.</p>
+
+        <form x-ref="registerForm" class="mt-6 space-y-4" :class="{ 'animate-nivayalife-shake': shake }" @submit.prevent="submit()">
+            @if($google)
+                <div class="flex items-center gap-3 rounded-xl border border-nivayalife-green/20 bg-nivayalife-mint/40 px-4 py-3">
+                    <x-google-icon class="h-5 w-5 flex-shrink-0 text-nivayalife-green" />
+                    <p class="text-sm text-nivayalife-ink">Signed in as <strong>{{ $google['email'] }}</strong> via Google — no password needed.</p>
+                </div>
+            @endif
+
+            <x-floating-input name="full_name" label="Full name" :value="$google['name'] ?? ''" :required="true" autocomplete="name" dynamic-errors />
+
+            @if($google)
+                <input type="hidden" name="email" value="{{ $google['email'] }}">
+            @else
+                <div x-data="{ email: '' }" class="relative">
+                    <input type="email" name="email" id="email" x-model="email" @input="checkEmail(email)" placeholder=" " required autocomplete="username"
+                        :class="errorFor('email') || emailStatus === 'taken' ? 'border-nivayalife-pink-dark ring-2 ring-nivayalife-pink-dark/20' : 'border-gray-200 focus:border-nivayalife-green'"
+                        class="peer w-full rounded-xl border bg-nivayalife-cream/40 px-4 pt-5 pb-2 pr-10 text-sm text-nivayalife-ink shadow-sm transition focus:outline-none focus:ring-2 focus:ring-nivayalife-green/30">
+                    <label for="email" class="pointer-events-none absolute left-4 top-3.5 text-sm text-nivayalife-muted transition-all duration-150 peer-focus:top-1.5 peer-focus:text-[11px] peer-focus:text-nivayalife-green peer-[&:not(:placeholder-shown)]:top-1.5 peer-[&:not(:placeholder-shown)]:text-[11px]">Email *</label>
+
+                    <svg x-cloak x-show="emailStatus === 'checking'" class="absolute right-3 top-3.5 h-5 w-5 animate-spin text-nivayalife-muted" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="3" stroke-opacity="0.3"/><path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+                    <svg x-cloak x-show="emailStatus === 'available'" class="pointer-events-none absolute right-3 top-3.5 h-5 w-5 text-nivayalife-green" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <svg x-cloak x-show="emailStatus === 'taken'" class="pointer-events-none absolute right-3 top-3.5 h-5 w-5 text-nivayalife-pink-dark" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+
+                    <p x-cloak x-show="emailStatus === 'taken'" class="mt-1 text-xs text-nivayalife-pink-dark">This email is already registered.</p>
+                    <p x-cloak x-show="errorFor('email') && emailStatus !== 'taken'" x-text="errorFor('email')" class="mt-1 text-xs text-nivayalife-pink-dark"></p>
+                </div>
+
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2" x-data="passwordStrength()">
+                    <div>
+                        <div class="relative">
+                            <input type="password" name="password" id="password" x-model="password" placeholder=" " required autocomplete="new-password" minlength="8"
+                                :class="errorFor('password') ? 'border-nivayalife-pink-dark ring-2 ring-nivayalife-pink-dark/20' : 'border-gray-200 focus:border-nivayalife-green'"
+                                class="peer w-full rounded-xl border bg-nivayalife-cream/40 px-4 pt-5 pb-2 text-sm text-nivayalife-ink shadow-sm transition focus:outline-none focus:ring-2 focus:ring-nivayalife-green/30">
+                            <label for="password" class="pointer-events-none absolute left-4 top-3.5 text-sm text-nivayalife-muted transition-all duration-150 peer-focus:top-1.5 peer-focus:text-[11px] peer-focus:text-nivayalife-green peer-[&:not(:placeholder-shown)]:top-1.5 peer-[&:not(:placeholder-shown)]:text-[11px]">Password *</label>
+                        </div>
+                        <div class="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
+                            <div class="h-full rounded-full transition-all duration-300" :style="`width: ${widthPercent}%; background: ${color}`"></div>
+                        </div>
+                        <p x-cloak x-show="password" role="status" aria-live="polite" class="mt-1 text-xs" :style="`color: ${color}`" x-text="label"></p>
+                        <p x-cloak x-show="errorFor('password')" x-text="errorFor('password')" class="mt-1 text-xs text-nivayalife-pink-dark"></p>
+                    </div>
+
+                    <x-floating-input type="password" name="password_confirmation" label="Confirm password" :required="true" autocomplete="new-password" />
+                </div>
+
+                <a href="{{ route('auth.google.redirect') }}"
+                    class="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-medium text-nivayalife-ink hover:bg-nivayalife-cream/60">
+                    <x-google-icon />
+                    Or sign up with Google instead
+                </a>
+            @endif
+
+            <x-phone-input name="phone" label="Phone number" with-country-code dynamic-errors />
+
+            <x-floating-select name="gender" label="Gender" :required="true" dynamic-errors :options="[
+                'male' => 'Male', 'female' => 'Female', 'other' => 'Other', 'prefer_not_to_say' => 'Prefer not to say',
+            ]" />
+
+            <div class="rounded-xl border border-gray-100 p-4 dark:border-white/10">
+                <x-bmi-gauge :size="180" dynamic-errors />
+            </div>
+
+            {{-- Optional — nothing in the app requires these to use uploads/AI features; check any you're comfortable with now, or skip and they're never asked again unless you opt in later. --}}
+            <div class="space-y-2.5 rounded-xl border border-gray-100 p-4 dark:border-white/10">
+                <label class="flex items-start gap-3 text-sm text-nivayalife-ink/80 dark:text-white/70">
+                    <input type="checkbox" name="consent_account_creation" value="1" class="mt-0.5 rounded border-gray-300 text-nivayalife-green focus:ring-nivayalife-green">
+                    <span>I agree to the <a href="{{ url('/terms') }}" target="_blank" class="text-nivayalife-green underline">Terms of Service</a>.</span>
+                </label>
+                <label class="flex items-start gap-3 text-sm text-nivayalife-ink/80 dark:text-white/70">
+                    <input type="checkbox" name="consent_upload" value="1" class="mt-0.5 rounded border-gray-300 text-nivayalife-green focus:ring-nivayalife-green">
+                    <span>I consent to uploading and storing my family's medical reports per the <a href="{{ url('/privacy') }}" target="_blank" class="text-nivayalife-green underline">Privacy Policy</a>.</span>
+                </label>
+                <label class="flex items-start gap-3 text-sm text-nivayalife-ink/80 dark:text-white/70">
+                    <input type="checkbox" name="consent_ai_processing" value="1" class="mt-0.5 rounded border-gray-300 text-nivayalife-green focus:ring-nivayalife-green">
+                    <span>I consent to AI processing of uploaded reports to generate plain-language summaries.</span>
+                </label>
+            </div>
+
+            <p x-cloak x-show="errorFor('_general')" x-text="errorFor('_general')" class="text-center text-sm text-nivayalife-pink-dark"></p>
+
+            <button type="submit" :disabled="loading"
+                class="flex w-full items-center justify-center gap-2 rounded-xl bg-nivayalife-green px-7 py-3 text-sm font-semibold text-white shadow-nivayalife-sm transition hover:bg-nivayalife-green-dark disabled:opacity-60">
+                <svg x-show="loading" class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="3" stroke-opacity="0.3"/><path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+                <span x-text="loading ? 'Creating your account…' : 'Create my account'"></span>
+            </button>
+        </form>
+    </div>
+
+    <p class="mt-6 text-center text-xs text-nivayalife-muted">
+        You can fill in your date of birth, blood group, photo, address, and emergency contact anytime from your profile.
+    </p>
+</div>
+
+</body>
+</html>
